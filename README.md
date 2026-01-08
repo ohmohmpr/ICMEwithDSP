@@ -121,6 +121,7 @@ Accurate pose estimation of surrounding vehicles is crucial for robust autonomou
 ### 1. Set up conda environment
 
 ```bash
+conda env remove -n ICMEwithDSP
 conda create --name ICMEwithDSP python=3.9
 conda activate ICMEwithDSP
 ```
@@ -138,10 +139,17 @@ The commands depend on your CUDA version. You may check the instructions [previo
 ```bash
 # [follow](https://github.com/open-mmlab/OpenPCDet/blob/master/docs/INSTALL.md)
 pip3 install spconv-cu120 
-pip3 install av2==0.2.1 bbox
+pip3 install av2==0.2.1 bbox kornia==0.5.8 polyscope==2.5.0
 pip3 install numpy==1.26.4 # dont upgrade to version 2.0.0
 cd OpenPCDet # fix the version of repo
-python -m pip install --editable --no-build-isolation .
+python -m pip install --no-build-isolation --editable .
+```
+
+### 4. Download weight to kiss-icp/config/pth
+
+```bash
+# https://github.com/open-mmlab/OpenPCDet/tree/master?tab=readme-ov-file#model-zoo
+# take a look here to the folder
 ```
 
 ### 4. For development
