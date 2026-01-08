@@ -1,0 +1,18 @@
+out_dir: "results"
+
+data:
+  deskew: True
+  max_range: 100.0
+  min_range: 0.0
+
+mapping:
+  max_points_per_voxel: 20
+
+adaptive_threshold:
+  initial_threshold: 2.0
+  min_motion_th: 0.1
+
+openpcdet:
+  cfg_file: "config/cfgs/kitti_models/pointpillar.yaml" # pointpillar, pv_rcnn
+  ckpt: "config/pth/pointpillar_7728.pth" # pointpillar_7728, pv_rcnn_8369
+  data_path: "/home/ohmpr/data/KITTI/sequences/00/velodyne/" # dirty fix
