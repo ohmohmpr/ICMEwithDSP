@@ -167,7 +167,8 @@ make editable
 
 ```bash
 git clone https://github.com/ohmohmpr/ICMEwithDSP.git
-cd ICMEwithDSP
+cd ICMEwithDSP/kiss-icp
+kiss_icp_pipeline ~/data/KITTI/sequences/00/velodyne/ --config config/basic.yaml -v
 ```
 
 <!-- ### Sanity test
