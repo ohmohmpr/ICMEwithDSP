@@ -51,3 +51,46 @@ class OpenPCDetConfig(BaseModel):
     cfg_file: str = "cfgs/kitti_models/pv_rcnn.yaml"
     ckpt: str = "pv_rcnn_8369.pth"
     data_path: str = "~/data/KITTI/sequences/00/velodyne/"
+
+class DSPSLAMConfig(BaseModel):
+    data_type: str = "KITTI"
+    # detect_online: bool = False
+    # path_label_3d: "data/dsp_slam/kitti/07/labels/pointpillars_labels"
+    # path_label_2d: "data/dsp_slam/kitti/07/labels/maskrcnn_labels"
+    # Detector3D: 
+    #     config_path: "configs/config_pointpillars.py"
+    #     weight_path: "weights/pointpillars/model.pth"
+    # Detector2D:
+    #     config_path: "configs/config_maskrcnn.py"
+    #     weight_path: "weights/maskrcnn/model.pth"
+    min_bb_area: Optional[float] = 1600
+    min_mask_area: Optional[float] = 1000
+    downsample_ratio: Optional[float] = 4.0
+    num_lidar_max: Optional[float] = 500
+    num_lidar_min: Optional[float] = 10
+    DeepSDF_DIR: str = "weights/deepsdf/cars_64"
+    voxels_dim: Optional[float] = 32
+    optimizer: dict = {}
+    #     code_len: Optional[float] = 64,
+    #     num_depth_samples: Optional[float] = 50,
+    #     cut_off_threshold: Optional[float] = 0.01,
+    #     joint_optim: list = [
+    #         k1: Optional[float] = 1.0
+    #         k2: Optional[float] = 100.0
+    #         k3: Optional[float] = 0.25
+    #         k4: Optional[float] = 1e07
+    #         b1: Optional[float] = 0.20
+    #         b2: Optional[float] = 0.025
+    #     ],
+    #     num_iterations: Optional[float] = 10
+    #     learning_rate: Optional[float] = 1.0
+    #     scale_damping: Optional[float] = 100.0
+    #     pose_only_optim: list = [
+    #         num_iterations: Optional[float] = 5
+    #         learning_rate: Optional[float] = 1.0
+    #     ],
+    # ]
+    # viewer:
+    #     "distance": 150.0
+    #     "tilt": 45.0
+    #     "frame_size": 10.0

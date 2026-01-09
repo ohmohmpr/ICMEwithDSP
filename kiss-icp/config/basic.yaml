@@ -16,3 +16,43 @@ openpcdet:
   cfg_file: "config/cfgs/kitti_models/pointpillar.yaml" # pointpillar, pv_rcnn
   ckpt: "config/pth/pointpillar_7728.pth" # pointpillar_7728, pv_rcnn_8369
   data_path: "/home/ohmpr/data/KITTI/sequences/00/velodyne/" # dirty fix
+
+dsp_slam:
+  "data_type": "KITTI"
+  # "detect_online": false
+  # "path_label_3d": "data/dsp_slam/kitti/07/labels/pointpillars_labels"
+  # "path_label_2d": "data/dsp_slam/kitti/07/labels/maskrcnn_labels"
+  # "Detector3D": 
+  #   "config_path": "configs/config_pointpillars.py"
+  #   "weight_path": "weights/pointpillars/model.pth"
+  # "Detector2D":
+  #   "config_path": "configs/config_maskrcnn.py"
+  #   "weight_path": "weights/maskrcnn/model.pth"
+  "min_bb_area": 1600
+  "min_mask_area": 1000
+  "downsample_ratio": 4.0
+  "num_lidar_max": 500
+  "num_lidar_min": 10
+  "DeepSDF_DIR": "../DSP-SLAM/weight/deepsdf/cars_64/"
+  "voxels_dim": 32
+  "optimizer":
+    "code_len": 64
+    "num_depth_samples": 50
+    "cut_off_threshold": 0.01
+    "joint_optim":
+      "k1": 1.0
+      "k2": 100.0
+      "k3": 0.25
+      "k4": 1e07
+      "b1": 0.20
+      "b2": 0.025
+      "num_iterations": 10
+      "learning_rate": 1.0
+      "scale_damping": 100.0
+    "pose_only_optim":
+      "num_iterations": 5
+      "learning_rate": 1.0
+  # "viewer":
+  #   "distance": 150.0
+  #   "tilt": 45.0
+  #   "frame_size": 10.0

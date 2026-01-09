@@ -89,9 +89,10 @@ class Kissualizer(StubVisualizer):
         # Initialize Visualizer
         self._initialize_visualizer()
 
-    def update(self, source, keypoints, target_map, pose, ref_boxes_car, vis_infos: dict):
+    def update(self, source, keypoints, target_map, pose, 
+               ref_boxes_car, opt_boxes_car, gt_boxes_car, vis_infos: dict):
         self._vis_infos = dict(sorted(vis_infos.items(), key=lambda item: len(item[0])))
-        self._update_geometries(source, keypoints, target_map, pose, ref_boxes_car)
+        self._update_geometries(source, keypoints, target_map, pose, ref_boxes_car, opt_boxes_car, gt_boxes_car)
         self._last_pose = pose
         while self._block_execution:
             self._ps.frame_tick()
@@ -109,7 +110,7 @@ class Kissualizer(StubVisualizer):
         self._ps.set_user_callback(self._main_gui_callback)
         self._ps.set_build_default_gui_panels(False)
 
-    def _update_geometries(self, source, keypoints, target_map, pose, ref_boxes_car):
+    def _update_geometries(self, source, keypoints, target_map, pose, ref_boxes_car, opt_boxes_car, gt_boxes_car):
         # CURRENT FRAME
         frame_cloud = self._ps.register_point_cloud(
             "current_frame",

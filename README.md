@@ -152,7 +152,15 @@ python -m pip install --no-build-isolation --editable .
 # take a look here to the folder
 ```
 
-### 4. For development
+### 5. Install Deep_SDF
+
+```bash
+cd dsp
+pip3 install --editable .
+# download weight car-64 https://liveuclac-my.sharepoint.com/:f:/g/personal/ucabjw4_ucl_ac_uk/Eh3nHv6D-LZHkuny4iNOexQBGdDVxloM_nwbEZdxeRfStw?e=sYO1Ot to weight/deepsdf
+```
+
+### 6. For development
 
 ```bash
 cd kiss-icp

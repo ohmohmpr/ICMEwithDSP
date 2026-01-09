@@ -7,6 +7,7 @@ _skbuild/
 .polyscope.ini
 imgui.ini
 kiss-icp/config/pth
+DSP-SLAM/weight/deepsdf/cars_64
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,c++

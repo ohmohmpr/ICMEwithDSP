@@ -6,13 +6,16 @@ import warnings
 
 
 class Instance():
-    def __init__(self):
+    def __init__(self, bbox: BBox2D, id: int):
         self._id = id
-        self._color = np.array([])
+        self._color = np.random.rand(1, 3)
+        self.bbox = bbox
 
 class Tracker():
     def __init__(self):
-        self._instances = np.array([])
+        self._instances_in_frame = {}
+        self._instances = []
+        self.id = 0 # diry fix, fix with design pattern.
         pass
 
     def add(self, instances):
@@ -22,10 +25,16 @@ class Tracker():
         #     print("previous", prev_dist)
         # current_dist = np.sort(np.linalg.norm(instances[:, :3].cpu(), axis=1))
         # print("current", current_dist)
-
+        instances = instances.tolist()
 
         warnings.simplefilter(action='ignore', category=DeprecationWarning) # ICMEwithDSP modified, dirty fix
-        if (len(self._instances) > 0):
+        if (len(self._instances) == 0):
+            for current_car in instances:
+                self._instances.append(Instance(BBox2D([*current_car[:2], *current_car[3:5]]), self.id))
+                self.id = self.id + 1
+                print("INIT", self.id)
+
+        elif (len(self._instances) > 0):
             i_prev = 0
             for prev_car in self._instances:
                 i_curr = 0
@@ -40,7 +49,7 @@ class Tracker():
 
                     # print(*prev_car[:2], *prev_car[3:5], *current_car[:2], *current_car[3:5])
                     # Not that slow
-                    prev_car_bbox = BBox2D([*prev_car[:2], *prev_car[3:5]])
+                    prev_car_bbox = prev_car.bbox
                     current_car_bbox = BBox2D([*current_car[:2], *current_car[3:5]])
                     iou = iou_2d(prev_car_bbox, current_car_bbox)
 
@@ -51,24 +60,26 @@ class Tracker():
                       current_iou_max = iou
                       idx_current_iou_max = i_curr
                       current_car_bbox_max = current_car_bbox
-                      print("MATCH", prev_car_bbox, current_car_bbox, iou, i_curr)
-                      print("\n")
+                      # print("MATCH", prev_car_bbox, current_car_bbox, iou, i_curr)
+                      # print("\n")
                     i_curr = i_curr + 1
                 
                 if is_found:
                   # UPDATE
-                  print("MAX", prev_car_bbox, current_car_bbox_max, current_iou_max, idx_current_iou_max)
-                else:
-                  # CREATION
-                  print("NOT FOUND")
+                  prev_car.bbox = current_car_bbox
+                  instances.pop(idx_current_iou_max)
+                  # print("MAX", prev_car_bbox, current_car_bbox_max, current_iou_max, idx_current_iou_max)
+                  pass
+
+            for current_car in instances:
+                # CREATION
+                self._instances.append(Instance(BBox2D([*current_car[:2], *current_car[3:5]]), self.id))
+                self.id = self.id + 1
+                print("CREATION", self.id)
 
                 #
-                print("\n")
-                
-
 
         print("\n")
-        self._instances = instances
 
     def get(self):
         pass

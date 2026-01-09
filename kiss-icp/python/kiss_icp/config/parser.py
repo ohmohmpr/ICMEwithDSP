@@ -36,6 +36,7 @@ from kiss_icp.config.config import (
     MappingConfig,
     RegistrationConfig,
     OpenPCDetConfig,
+    DSPSLAMConfig,
 )
 
 
@@ -47,6 +48,7 @@ class KISSConfig(BaseSettings):
     mapping: MappingConfig = MappingConfig()
     adaptive_threshold: AdaptiveThresholdConfig = AdaptiveThresholdConfig()
     openpcdet: OpenPCDetConfig = OpenPCDetConfig()
+    dsp_slam: DSPSLAMConfig = DSPSLAMConfig()
 
 
 def _yaml_source(config_file: Optional[Path]) -> Dict[str, Any]:

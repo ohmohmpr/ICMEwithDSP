@@ -40,6 +40,10 @@ from kiss_icp.tools.visualizer import Kissualizer, StubVisualizer
 from kiss_icp.openpcdet import DemoDataset, parse_config
 from kiss_icp.iou_tracker import Tracker
 
+from dsp_slam.deep_sdf.deep_sdf_decoder import Decoder
+from dsp_slam.reconstruct.optimizer import Optimizer
+from dsp_slam.reconstruct.utils import get_decoder
+
 from pcdet.models import build_network, load_data_to_gpu
 from pcdet.utils import common_utils
 
@@ -92,8 +96,14 @@ class OdometryPipeline:
         self.model.load_params_from_file(filename=self.config.openpcdet.ckpt, logger=self.logger, to_cpu=True)
         self.model.cuda()
         self.model.eval()
+
         ## Tracking
         self.tracker = Tracker()
+
+        ## Optimization
+        decoder = get_decoder(self.config.dsp_slam)
+        # self.decoder = Decoder()
+        self.optimizer = Optimizer(decoder, self.config.dsp_slam)
 
         # Visualizer
         self.visualizer = Kissualizer() if visualize else StubVisualizer()
@@ -141,6 +151,12 @@ class OdometryPipeline:
                 self.tracker.add(ref_boxes_car.cpu())
                 self.tracker.get()
 
+                ## DSP
+                opt_boxes_car = []
+
+                ## Ground Truth
+                gt_boxes_car = []
+
                 # Update visualizer
                 self._vis_infos["FPS"] = int(np.floor(self._get_fps()))
                 self.visualizer.update(
@@ -149,6 +165,8 @@ class OdometryPipeline:
                     self.odometry.local_map,
                     self.odometry.last_pose,
                     ref_boxes_car,
+                    opt_boxes_car,
+                    gt_boxes_car,
                     self._vis_infos,
                 )
 
