@@ -463,4 +463,8 @@ If you have any questions, please contact:
 
 ## Related Projects
 
-[KISS-ICP (RAL 23)](https://github.com/PRBonn/kiss-icp): A LiDAR odometry pipeline that just works
+[KISS-ICP (RAL 23)](https://github.com/PRBonn/kiss-icp): A LiDAR odometry pipeline that just works  
+[OpenPCDet](https://github.com/open-mmlab/OpenPCDet): An Open-source Toolbox for 3D Object Detection from Point Clouds  
+[MMDetection3D](https://github.com/open-mmlab/mmdetection3d): next-generation platform for general 3D object detection  
+[DeepSDF](https://github.com/facebookresearch/DeepSDF): Learning Continuous Signed Distance Functions for Shape Representation  
+[DSP-SLAM](https://github.com/JingwenWang95/DSP-SLAM): Object Oriented SLAM with Deep Shape Priors  
