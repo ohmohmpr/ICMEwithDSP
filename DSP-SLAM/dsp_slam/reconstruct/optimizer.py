@@ -18,29 +18,29 @@
 import math
 import numpy as np
 import torch
-from reconstruct.utils import ForceKeyErrorDict, create_voxel_grid, convert_sdf_voxels_to_mesh
-from reconstruct.loss import compute_sdf_loss, compute_render_loss, compute_rotation_loss_sim3
-from reconstruct.loss_utils import decode_sdf, get_robust_res, exp_se3, exp_sim3, get_time
+from .utils import ForceKeyErrorDict, create_voxel_grid, convert_sdf_voxels_to_mesh
+from .loss import compute_sdf_loss, compute_render_loss, compute_rotation_loss_sim3
+from .loss_utils import decode_sdf, get_robust_res, exp_se3, exp_sim3, get_time
 
 
 class Optimizer(object):
     def __init__(self, decoder, configs):
         self.decoder = decoder
         optim_cfg = configs.optimizer
-        self.k1 = optim_cfg.joint_optim.k1
-        self.k2 = optim_cfg.joint_optim.k2
-        self.k3 = optim_cfg.joint_optim.k3
-        self.k4 = optim_cfg.joint_optim.k4
-        self.b1 = optim_cfg.joint_optim.b1
-        self.b2 = optim_cfg.joint_optim.b2
-        self.lr = optim_cfg.joint_optim.learning_rate
-        self.s_damp = optim_cfg.joint_optim.scale_damping
-        self.num_iterations_joint_optim = optim_cfg.joint_optim.num_iterations
-        self.code_len = optim_cfg.code_len
-        self.num_depth_samples = optim_cfg.num_depth_samples
-        self.cut_off = optim_cfg.cut_off_threshold
+        self.k1 = optim_cfg["joint_optim"]["k1"]
+        self.k2 = optim_cfg["joint_optim"]["k2"]
+        self.k3 = optim_cfg["joint_optim"]["k3"]
+        self.k4 = optim_cfg["joint_optim"]["k4"]
+        self.b1 = optim_cfg["joint_optim"]["b1"]
+        self.b2 = optim_cfg["joint_optim"]["b2"]
+        self.lr = optim_cfg["joint_optim"]["learning_rate"]
+        self.s_damp = optim_cfg["joint_optim"]["scale_damping"]
+        self.num_iterations_joint_optim = optim_cfg["joint_optim"]["num_iterations"]
+        self.code_len = optim_cfg["code_len"]
+        self.num_depth_samples = optim_cfg["num_depth_samples"]
+        self.cut_off = optim_cfg["cut_off_threshold"]
         if configs.data_type == "KITTI":
-            self.num_iterations_pose_only = optim_cfg.pose_only_optim.num_iterations
+            self.num_iterations_pose_only = optim_cfg["pose_only_optim"]["num_iterations"]
 
     def estimate_pose_cam_obj(self, t_co_se3, scale, pts, code):
         """

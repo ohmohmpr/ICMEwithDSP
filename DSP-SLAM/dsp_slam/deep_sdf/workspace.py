@@ -204,11 +204,11 @@ def config_decoder(experiment_directory, checkpoint="latest"):
     specs_filename = os.path.join(experiment_directory, "specs.json")
     if not os.path.isfile(specs_filename):
         raise Exception(
-            'The experiment directory does not include specifications file "specs.json"'
+            f'The experiment directory does not include specifications file "specs.json" in {experiment_directory}'
         )
 
     specs = json.load(open(specs_filename))
-    arch = __import__("deep_sdf." + specs["NetworkArch"], fromlist=["Decoder"])
+    arch = __import__("dsp_slam.deep_sdf." + specs["NetworkArch"], fromlist=["Decoder"])
     latent_size = specs["CodeLength"]
     decoder = arch.Decoder(latent_size, **specs["NetworkSpecs"])
     decoder = torch.nn.DataParallel(decoder)
