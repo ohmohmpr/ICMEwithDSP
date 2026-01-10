@@ -219,6 +219,29 @@ class Kissualizer(StubVisualizer):
             i = i + 1
 
         self.i = i
+
+
+        # bbox
+        min_x, min_y, min_z, max_x, max_y, max_z = [1, -3.84, -3, 59.88, 3.84, 1]
+        node_0 = [max_x, max_y, min_z]
+        node_1 = [max_x, min_y, min_z] 
+        node_2 = [min_x, min_y, min_z]
+        node_3 = [min_x, max_y, min_z]
+        node_4 = [max_x, max_y, max_z]
+        node_5 = [max_x, min_y, max_z]
+        node_6 = [min_x, min_y, max_z]
+        node_7 = [min_x, max_y, max_z]
+        node = np.array([node_0, node_1, node_2, node_3,
+                        node_4, node_5, node_6, node_7])
+        edge = np.array([[0, 1], [0, 3], [0, 4], 
+                        [1, 2], [1, 5], [2, 3], [2, 6],
+                        [3, 7], 
+                        [4, 5], [4, 7], [5, 6], [6, 7]])
+        
+        ps_net = self._ps.register_curve_network("bbox", node, edge)
+        ps_net.set_radius(0.0001)
+        ps_net.set_color((1, 1, 1))
+
     def _register_trajectory(self):
         trajectory_cloud = self._ps.register_point_cloud(
             "trajectory",

@@ -16,7 +16,6 @@ class Tracker():
         self._instances_in_frame = {}
         self._instances = []
         self.id = 0 # diry fix, fix with design pattern.
-        pass
 
     def add(self, instances):
 
@@ -32,7 +31,7 @@ class Tracker():
             for current_car in instances:
                 self._instances.append(Instance(BBox2D([*current_car[:2], *current_car[3:5]]), self.id))
                 self.id = self.id + 1
-                print("INIT", self.id)
+                # print("INIT", self.id)
 
         elif (len(self._instances) > 0):
             i_prev = 0
@@ -69,17 +68,15 @@ class Tracker():
                   prev_car.bbox = current_car_bbox
                   instances.pop(idx_current_iou_max)
                   # print("MAX", prev_car_bbox, current_car_bbox_max, current_iou_max, idx_current_iou_max)
-                  pass
 
             for current_car in instances:
                 # CREATION
                 self._instances.append(Instance(BBox2D([*current_car[:2], *current_car[3:5]]), self.id))
                 self.id = self.id + 1
-                print("CREATION", self.id)
+                # print("CREATION", self.id)
 
-                #
 
-        print("\n")
+        # print("\n")
 
     def get(self):
         pass
