@@ -29,6 +29,7 @@ from typing import Optional
 
 import numpy as np
 import torch
+import copy
 from pyquaternion import Quaternion
 
 from kiss_icp.config import load_config, write_config
@@ -39,9 +40,9 @@ from kiss_icp.tools.progress_bar import get_progress_bar
 from kiss_icp.tools.visualizer import Kissualizer, StubVisualizer
 from kiss_icp.openpcdet import DemoDataset, parse_config
 from kiss_icp.iou_tracker import Tracker
+from kiss_icp.BBoxICME import BBoxICME
 
-from dsp_slam.deep_sdf.deep_sdf_decoder import Decoder
-from dsp_slam.reconstruct.optimizer import Optimizer
+from dsp_slam.reconstruct.optimizer import Optimizer, MeshExtractor
 from dsp_slam.reconstruct.utils import get_decoder
 
 from pcdet.models import build_network, load_data_to_gpu
@@ -102,8 +103,8 @@ class OdometryPipeline:
 
         ## Optimization
         decoder = get_decoder(self.config.dsp_slam)
-        # self.decoder = Decoder()
         self.optimizer = Optimizer(decoder, self.config.dsp_slam)
+        self.mesh_extractor = MeshExtractor(decoder, voxels_dim=16) #64 ICMEwithDSP modified
 
         # Visualizer
         self.visualizer = Kissualizer() if visualize else StubVisualizer()
@@ -151,11 +152,53 @@ class OdometryPipeline:
                 self.tracker.add(ref_boxes_car.cpu())
                 self.tracker.get()
 
+
+                ########## test on the first car ##########
+                first_car_bbox = copy.deepcopy(ref_boxes_car[0].cpu().detach().numpy())
+                # first_car_bbox = copy.deepcopy(ref_boxes_car.cpu().detach().numpy())
+                ########## test on the first car ##########
+
                 ## DSP
+                torch.set_grad_enabled(True)
+                # x_rad = np.deg2rad(-90)
+                # rot_x = np.array([[1, 0, 0], 
+                #                     [0, np.cos(x_rad), -np.sin(x_rad)], 
+                #                     [0, np.sin(x_rad), np.cos(x_rad)]])
+
+                # z_rad = np.deg2rad(90)
+                # rot_z = np.array([  [np.cos(z_rad), -np.sin(z_rad), 0], 
+                #                     [np.sin(z_rad),  np.cos(z_rad), 0], 
+                #                     [0       ,         0, 1]])
+                # scale = np.identity(3) / 2.2
+                # rot_velo_obj = scale @ rot_x @ rot_z
+                # car_points = (rot_velo_obj @ car_points.T).T
+                # obj = self.optimizer.reconstruct_object(np.identity(4), car_points)
+                # mesh = self.mesh_extractor.extract_mesh_from_code(obj.code)
+                # t = np.array([[1, 0, 0, center[0]], 
+                #           [0, 1, 0, center[1]], 
+                #           [0, 0,1, center[2]]])
+                # mesh.vertices = (np.linalg.inv(rot_velo_obj) @ mesh.vertices.T).T
+                # print("mesh", )
+                # mesh.vertices = (t @ np.hstack((mesh.vertices, np.ones((mesh.vertices.shape[0],1))  )).T).T[:, 0:3]
+
+                # print("t_cam_obj", obj.t_cam_obj)
                 opt_boxes_car = []
 
                 ## Ground Truth
                 gt_boxes_car = []
+
+                ## ICME
+                bbox_ICME = BBoxICME(first_car_bbox)
+                ICME = {}
+                car_points = bbox_ICME.get_points_in_bbox(raw_frame)
+                nodes, edges = bbox_ICME.get_vertices_nodes()
+                # ICME["ref_boxes_car"] = [first_car_bbox]
+                ICME["nodes"] = nodes
+                ICME["edges"] = edges
+                ICME["opt_boxes_car"] = opt_boxes_car
+                ICME["gt_boxes_car"] = gt_boxes_car
+                ICME["car_points"] = car_points
+                ICME["mesh"] = []
 
                 # Update visualizer
                 self._vis_infos["FPS"] = int(np.floor(self._get_fps()))
@@ -164,9 +207,7 @@ class OdometryPipeline:
                     keypoints,
                     self.odometry.local_map,
                     self.odometry.last_pose,
-                    ref_boxes_car,
-                    opt_boxes_car,
-                    gt_boxes_car,
+                    ICME,
                     self._vis_infos,
                 )
 

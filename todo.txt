@@ -1,1 +1,1 @@
-refractor a get_point_in_bbox function and verify.
+check DeepSDF, loss should be low when init.

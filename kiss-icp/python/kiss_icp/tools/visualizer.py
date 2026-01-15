@@ -23,7 +23,7 @@ import datetime
 import importlib
 import os
 from abc import ABC
-
+import torch
 import numpy as np
 
 # Button names
@@ -90,9 +90,9 @@ class Kissualizer(StubVisualizer):
         self._initialize_visualizer()
 
     def update(self, source, keypoints, target_map, pose, 
-               ref_boxes_car, opt_boxes_car, gt_boxes_car, vis_infos: dict):
+               ICME, vis_infos: dict):
         self._vis_infos = dict(sorted(vis_infos.items(), key=lambda item: len(item[0])))
-        self._update_geometries(source, keypoints, target_map, pose, ref_boxes_car, opt_boxes_car, gt_boxes_car)
+        self._update_geometries(source, keypoints, target_map, pose, ICME)
         self._last_pose = pose
         while self._block_execution:
             self._ps.frame_tick()
@@ -110,7 +110,7 @@ class Kissualizer(StubVisualizer):
         self._ps.set_user_callback(self._main_gui_callback)
         self._ps.set_build_default_gui_panels(False)
 
-    def _update_geometries(self, source, keypoints, target_map, pose, ref_boxes_car, opt_boxes_car, gt_boxes_car):
+    def _update_geometries(self, source, keypoints, target_map, pose, ICME):
         # CURRENT FRAME
         frame_cloud = self._ps.register_point_cloud(
             "current_frame",
@@ -166,59 +166,47 @@ class Kissualizer(StubVisualizer):
              
 
         i = 0
-        """
-              7 -------- 4
-             /|         /|
-            6 -------- 5 .
-            | |        | |
-            . 3 -------- 0
-            |/         |/
-            2 -------- 1
-        Args:
-            boxes3d:  (N, 7) [x, y, z, dx, dy, dz, heading], (x, y, z) is the box center
-
-        Returns:
-        """
-        for ref_box_car in ref_boxes_car.cpu():
-            x = ref_box_car[0]
-            y = ref_box_car[1]
-            z = ref_box_car[2]
-            dx = ref_box_car[3] / 2
-            dy = ref_box_car[4] / 2
-            dz = ref_box_car[5] / 2
-            heading = ref_box_car[6]
-            # print(ref_box_car)
-            min_x = x - dx
-            max_x = x + dx
-            min_y = y - dy
-            max_y = y + dy
-            min_z = z - dz
-            max_z = z + dz
-            node_0 = [max_x, max_y, min_z]
-            node_1 = [max_x, min_y, min_z] 
-            node_2 = [min_x, min_y, min_z]
-            node_3 = [min_x, max_y, min_z]
-            node_4 = [max_x, max_y, max_z]
-            node_5 = [max_x, min_y, max_z]
-            node_6 = [min_x, min_y, max_z]
-            node_7 = [min_x, max_y, max_z]
-            node = np.array([node_0, node_1, node_2, node_3,
-                              node_4, node_5, node_6, node_7])
-            edge = np.array([[0, 1], [0, 3], [0, 4], 
-                             [1, 2], [1, 5], [2, 3], [2, 6],
-                             [3, 7], 
-                             [4, 5], [4, 7], [5, 6], [6, 7]])
 
 
-            # nodes.append([node])
-            # edges.append([edge])
+        # for ref_box_car in ICME["ref_boxes_car"]:
+        #     x = ref_box_car[0]
+        #     y = ref_box_car[1]
+        #     z = ref_box_car[2]
+        #     dx = ref_box_car[3] / 2
+        #     dy = ref_box_car[4] / 2
+        #     dz = ref_box_car[5] / 2
+        #     heading = ref_box_car[6]
+        #     # print(ref_box_car)
+        #     min_x = x - dx
+        #     max_x = x + dx
+        #     min_y = y - dy
+        #     max_y = y + dy
+        #     min_z = z - dz
+        #     max_z = z + dz
+        #     node_0 = [max_x, max_y, min_z]
+        #     node_1 = [max_x, min_y, min_z] 
+        #     node_2 = [min_x, min_y, min_z]
+        #     node_3 = [min_x, max_y, min_z]
+        #     node_4 = [max_x, max_y, max_z]
+        #     node_5 = [max_x, min_y, max_z]
+        #     node_6 = [min_x, min_y, max_z]
+        #     node_7 = [min_x, max_y, max_z]
+        #     node = np.array([node_0, node_1, node_2, node_3,
+        #                       node_4, node_5, node_6, node_7])
+        #     edge = np.array([[0, 1], [0, 3], [0, 4], 
+        #                      [1, 2], [1, 5], [2, 3], [2, 6],
+        #                      [3, 7], 
+        #                      [4, 5], [4, 7], [5, 6], [6, 7]])
+
+        nodes = ICME["nodes"]
+        edges = ICME["edges"]
 
             # visualize!
-            ps_net = self._ps.register_curve_network(f"{i}", node, edge)
-            ps_net.set_radius(0.0005)
-            i = i + 1
+        ps_net = self._ps.register_curve_network(f"{i}", nodes, edges)
+        ps_net.set_radius(0.0005)
+            # i = i + 1
 
-        self.i = i
+        # self.i = i
 
 
         # bbox
@@ -241,6 +229,14 @@ class Kissualizer(StubVisualizer):
         ps_net = self._ps.register_curve_network("bbox", node, edge)
         ps_net.set_radius(0.0001)
         ps_net.set_color((1, 1, 1))
+        pnt = self._ps.register_point_cloud(
+            "pnt", ICME["car_points"],
+            color=TRAJECTORY_COLOR)
+        pnt.set_radius(0.05, relative=False)
+
+
+        # ps_mesh = self._ps.register_surface_mesh("my mesh", ICME["mesh"].vertices, ICME["mesh"].faces)
+
 
     def _register_trajectory(self):
         trajectory_cloud = self._ps.register_point_cloud(
