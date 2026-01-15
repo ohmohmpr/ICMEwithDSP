@@ -1,1 +1,2 @@
 check DeepSDF, loss should be low when init.
+check mesh heading

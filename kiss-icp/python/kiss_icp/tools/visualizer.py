@@ -163,50 +163,16 @@ class Kissualizer(StubVisualizer):
         if self.i > 0:
             for i in range(self.i):
                 self._ps.remove_curve_network(f"{i}")
-             
-
+    
         i = 0
-
-
         # for ref_box_car in ICME["ref_boxes_car"]:
-        #     x = ref_box_car[0]
-        #     y = ref_box_car[1]
-        #     z = ref_box_car[2]
-        #     dx = ref_box_car[3] / 2
-        #     dy = ref_box_car[4] / 2
-        #     dz = ref_box_car[5] / 2
-        #     heading = ref_box_car[6]
-        #     # print(ref_box_car)
-        #     min_x = x - dx
-        #     max_x = x + dx
-        #     min_y = y - dy
-        #     max_y = y + dy
-        #     min_z = z - dz
-        #     max_z = z + dz
-        #     node_0 = [max_x, max_y, min_z]
-        #     node_1 = [max_x, min_y, min_z] 
-        #     node_2 = [min_x, min_y, min_z]
-        #     node_3 = [min_x, max_y, min_z]
-        #     node_4 = [max_x, max_y, max_z]
-        #     node_5 = [max_x, min_y, max_z]
-        #     node_6 = [min_x, min_y, max_z]
-        #     node_7 = [min_x, max_y, max_z]
-        #     node = np.array([node_0, node_1, node_2, node_3,
-        #                       node_4, node_5, node_6, node_7])
-        #     edge = np.array([[0, 1], [0, 3], [0, 4], 
-        #                      [1, 2], [1, 5], [2, 3], [2, 6],
-        #                      [3, 7], 
-        #                      [4, 5], [4, 7], [5, 6], [6, 7]])
 
         nodes = ICME["nodes"]
         edges = ICME["edges"]
 
-            # visualize!
+        # visualize!
         ps_net = self._ps.register_curve_network(f"{i}", nodes, edges)
         ps_net.set_radius(0.0005)
-            # i = i + 1
-
-        # self.i = i
 
 
         # bbox
@@ -235,7 +201,7 @@ class Kissualizer(StubVisualizer):
         pnt.set_radius(0.05, relative=False)
 
 
-        # ps_mesh = self._ps.register_surface_mesh("my mesh", ICME["mesh"].vertices, ICME["mesh"].faces)
+        ps_mesh = self._ps.register_surface_mesh("my mesh", ICME["mesh"].vertices, ICME["mesh"].faces)
 
 
     def _register_trajectory(self):

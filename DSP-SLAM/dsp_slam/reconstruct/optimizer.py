@@ -85,7 +85,8 @@ class Optimizer(object):
 
         return t_cam_obj
 
-    def reconstruct_object(self, t_cam_obj, pts, rays, depth, code=None):
+    # def reconstruct_object(self, t_cam_obj, pts, rays, depth, code=None):
+    def reconstruct_object(self, t_cam_obj, pts, code=None):
         """
         :param t_cam_obj: object pose, object-to-camera transformation
         :param pts: surface points, under camera coordinate (M, 3)
@@ -95,23 +96,23 @@ class Optimizer(object):
         """
         # Always start from zero code
         if code is None:
-            latent_vector = torch.zeros(self.code_len).cuda()
+            latent_vector = torch.zeros(self.code_len).cuda().to(dtype=torch.float32)
         else:
-            latent_vector = torch.from_numpy(code[:self.code_len]).cuda()
+            latent_vector = torch.from_numpy(code[:self.code_len]).cuda().to(dtype=torch.float32)
 
         # Initial Pose Estimate
-        t_cam_obj = torch.from_numpy(t_cam_obj)
+        t_cam_obj = torch.from_numpy(t_cam_obj).to(dtype=torch.float32)
         t_obj_cam = torch.inverse(t_cam_obj)
         # ray directions within Omega_r
-        ray_directions = torch.from_numpy(rays).cuda()
+        # ray_directions = torch.from_numpy(rays).cuda()
         # depth observations within Omega_r
-        n_foreground_rays = depth.shape[0]
-        n_background_rays = rays.shape[0] - n_foreground_rays
+        # n_foreground_rays = depth.shape[0]
+        # n_background_rays = rays.shape[0] - n_foreground_rays
         # print("rays: %d, total rays: %d" % (n_foreground_rays, n_background_rays))
-        depth_obs = np.concatenate([depth, np.zeros(n_background_rays)], axis=0).astype(np.float32)
-        depth_obs = torch.from_numpy(depth_obs).cuda()
+        # depth_obs = np.concatenate([depth, np.zeros(n_background_rays)], axis=0).astype(np.float32)
+        # depth_obs = torch.from_numpy(depth_obs).cuda()
         # surface points within Omega_s
-        pts_surface = torch.from_numpy(pts).cuda()
+        pts_surface = torch.from_numpy(pts).cuda().float()
 
         start = get_time()
         loss = 0.
@@ -121,9 +122,9 @@ class Optimizer(object):
             scale = torch.det(t_cam_obj[:3, :3]) ** (1 / 3)
             # print("Scale: %f" % scale)
             depth_min, depth_max = t_cam_obj[2, 3] - 1.0 * scale, t_cam_obj[2, 3] + 1.0 * scale
-            sampled_depth_along_rays = torch.linspace(depth_min, depth_max, self.num_depth_samples).cuda()
+            # sampled_depth_along_rays = torch.linspace(depth_min, depth_max, self.num_depth_samples).cuda()
             # set background depth to d'
-            depth_obs[n_foreground_rays:] = 1.1 * depth_max
+            # depth_obs[n_foreground_rays:] = 1.1 * depth_max
 
             # 1. Compute SDF (3D) loss
             sdf_rst = compute_sdf_loss(self.decoder, pts_surface, t_obj_cam, latent_vector)
@@ -136,23 +137,24 @@ class Optimizer(object):
                 return ForceKeyErrorDict(t_cam_obj=None, code=None, is_good=False, loss=loss)
 
             # 2. Compute Render (2D) Loss
-            render_rst = compute_render_loss(self.decoder, ray_directions, depth_obs, t_obj_cam,
-                                             sampled_depth_along_rays, latent_vector, th=self.cut_off)
+            # render_rst = compute_render_loss(self.decoder, ray_directions, depth_obs, t_obj_cam,
+                                            #  sampled_depth_along_rays, latent_vector, th=self.cut_off)
             # in case rendering fails
-            if render_rst is None:
-                return ForceKeyErrorDict(t_cam_obj=None, code=None, is_good=False, loss=loss)
-            else:
-                de_dsim3_render, de_dc_render, res_render = render_rst
+            # if render_rst is None:
+            #     return ForceKeyErrorDict(t_cam_obj=None, code=None, is_good=False, loss=loss)
+            # else:
+            #     de_dsim3_render, de_dc_render, res_render = render_rst
 
             # print("rays gradients on python side: %d" % de_dsim3_render.shape[0])
-            robust_res_render, render_loss, _ = get_robust_res(res_render, self.b1)
-            if math.isnan(render_loss):
-                return ForceKeyErrorDict(t_cam_obj=None, code=None, is_good=False, loss=loss)
+            # robust_res_render, render_loss, _ = get_robust_res(res_render, self.b1)
+            # if math.isnan(render_loss):
+            #     return ForceKeyErrorDict(t_cam_obj=None, code=None, is_good=False, loss=loss)
 
             # 3. Rotation prior
             drot_dsim3, res_rot = compute_rotation_loss_sim3(t_obj_cam)
 
-            loss = self.k1 * render_loss + self.k2 * sdf_loss
+            loss = self.k2 * sdf_loss
+            # loss = self.k1 * render_loss + self.k2 * sdf_loss
             z = latent_vector.cpu()
 
             # Compute Jacobian and Hessia
@@ -162,13 +164,13 @@ class Optimizer(object):
             H_sdf = self.k2 * torch.bmm(J_sdf.transpose(-2, -1), J_sdf).sum(0).squeeze().cpu() / J_sdf.shape[0]
             b_sdf = -self.k2 * torch.bmm(J_sdf.transpose(-2, -1), robust_res_sdf).sum(0).squeeze().cpu() / J_sdf.shape[0]
 
-            J_render = torch.cat([de_dsim3_render, de_dc_render], dim=-1)
-            H_render = self.k1 * torch.bmm(J_render.transpose(-2, -1), J_render).sum(0).squeeze().cpu() / J_render.shape[0]
-            b_render = -self.k1 * torch.bmm(J_render.transpose(-2, -1), robust_res_render).sum(0).squeeze().cpu() / J_render.shape[0]
+            # J_render = torch.cat([de_dsim3_render, de_dc_render], dim=-1)
+            # H_render = self.k1 * torch.bmm(J_render.transpose(-2, -1), J_render).sum(0).squeeze().cpu() / J_render.shape[0]
+            # b_render = -self.k1 * torch.bmm(J_render.transpose(-2, -1), robust_res_render).sum(0).squeeze().cpu() / J_render.shape[0]
 
-            H = H_render + H_sdf
+            H =  H_sdf
             H[pose_dim:pose_dim + self.code_len, pose_dim:pose_dim + self.code_len] += self.k3 * torch.eye(self.code_len)
-            b = b_render + b_sdf
+            b = b_sdf
             b[pose_dim:pose_dim + self.code_len] -= self.k3 * z
 
             # Rotation regularization

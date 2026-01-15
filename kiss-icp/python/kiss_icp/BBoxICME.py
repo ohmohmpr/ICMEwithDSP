@@ -36,6 +36,21 @@ class BBoxICME():
 
         return pts_in_bbox + self.center
     
+    def get_points_in_bbox_at_center(self, pts_frame) -> np.array:
+        # compared to c++ performance
+        centered_pts = pts_frame - self.center
+
+        x_axis = self.R_mtx[:, 0].T
+        y_axis = self.R_mtx[:, 1].T
+        z_axis = self.R_mtx[:, 2].T
+        point_in_x_idx  = np.abs(np.dot(centered_pts, x_axis )) <= self.l / 2
+        point_in_y_idx  = np.abs(np.dot(centered_pts, y_axis )) <= self.w / 2
+        point_in_z_idx  = np.abs(np.dot(centered_pts, z_axis )) <= self.h / 2
+        all = np.logical_and(point_in_x_idx, point_in_y_idx, point_in_z_idx)
+        pts_in_bbox = centered_pts[all]
+
+        return pts_in_bbox
+    
     def get_vertices_nodes(self):
         """
               7 -------- 4
@@ -84,3 +99,47 @@ class BBoxICME():
         ).T[:, 0:3] + np.array([self.center])
 
         return self.nodes, self.edges
+    
+    def get_points_in_DPS_coordinate(self, pts) -> np.array:
+
+        x_rad = np.deg2rad(-90)
+        rot_x = np.array([[1, 0, 0], 
+                            [0, np.cos(x_rad), -np.sin(x_rad)], 
+                            [0, np.sin(x_rad), np.cos(x_rad)]])
+
+        z_rad = np.deg2rad(90)
+        rot_z = np.array([  [np.cos(z_rad), -np.sin(z_rad), 0], 
+                            [np.sin(z_rad),  np.cos(z_rad), 0], 
+                            [0       ,         0, 1]])
+        scale = np.identity(3) / 2.2
+        rot_velo_obj = scale @ rot_x @ rot_z
+        pts = (rot_velo_obj @ pts.T).T
+
+        pts_in_DPS = pts
+
+        return pts_in_DPS
+    
+
+    def get_meshes(self, mesh) -> np.array:
+
+        x_rad = np.deg2rad(-90)
+        rot_x = np.array([[1, 0, 0], 
+                            [0, np.cos(x_rad), -np.sin(x_rad)], 
+                            [0, np.sin(x_rad), np.cos(x_rad)]])
+
+        z_rad = np.deg2rad(90)
+        rot_z = np.array([  [np.cos(z_rad), -np.sin(z_rad), 0], 
+                            [np.sin(z_rad),  np.cos(z_rad), 0], 
+                            [0       ,         0, 1]])
+        scale = np.identity(3) / 2.2
+        rot_velo_obj = scale @ rot_x @ rot_z
+
+        t = np.array([[1, 0, 0, self.center[0]], 
+                  [0, 1, 0, self.center[1]], 
+                  [0, 0,1, self.center[2]]])
+        mesh = (np.linalg.inv(rot_velo_obj) @ mesh.T).T
+        mesh = (t @ np.hstack((mesh, np.ones((mesh.shape[0],1))  )).T).T[:, 0:3]
+
+        meshes = mesh
+
+        return meshes
