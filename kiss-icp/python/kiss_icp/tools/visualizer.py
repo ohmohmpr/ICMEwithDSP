@@ -25,6 +25,7 @@ import os
 from abc import ABC
 import torch
 import numpy as np
+from kiss_icp.BBoxICME import BBoxICME
 
 # Button names
 START_BUTTON = " START\n[SPACE]"
@@ -79,6 +80,7 @@ class Kissualizer(StubVisualizer):
         self._toggle_map = True
         self._global_view = False
         self.i = 0
+        self.gt = 0
 
         # Create data
         self._trajectory = []
@@ -163,12 +165,31 @@ class Kissualizer(StubVisualizer):
         if self.i > 0:
             for i in range(self.i):
                 self._ps.remove_curve_network(f"{i}")
+
+        if self.gt > 0:
+            for i in range(self.gt):
+                try:
+                    self._ps.remove_curve_network(f"gt_{self.gt}")
+                except:
+                    pass
     
         i = 0
         # for ref_box_car in ICME["ref_boxes_car"]:
 
         nodes = ICME["nodes"]
         edges = ICME["edges"]
+
+        # Ground truth
+        if ICME["gt_boxes_car"] != None:
+            self.gt = 0
+            for gt_box_car in ICME["gt_boxes_car"]:
+                bbox_ICME = BBoxICME(gt_box_car)
+                nodes, edges = bbox_ICME.get_vertices_nodes()
+                ps_net = self._ps.register_curve_network(f"gt_{self.gt}", nodes, edges)
+                ps_net.set_radius(0.0001)
+                ps_net.set_color((1, 0, 0))
+                self.gt = self.gt + 1
+
 
         # visualize!
         ps_net = self._ps.register_curve_network(f"{i}", nodes, edges)
@@ -200,8 +221,8 @@ class Kissualizer(StubVisualizer):
             color=TRAJECTORY_COLOR)
         pnt.set_radius(0.05, relative=False)
 
-
-        ps_mesh = self._ps.register_surface_mesh("my mesh", ICME["mesh"].vertices, ICME["mesh"].faces)
+        if ICME["mesh"] is not None:
+            ps_mesh = self._ps.register_surface_mesh("my mesh", ICME["mesh"].vertices, ICME["mesh"].faces)
 
 
     def _register_trajectory(self):

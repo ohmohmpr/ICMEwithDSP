@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from scipy.spatial.transform import Rotation as R
+from av2.structures.cuboid import Cuboid
 
 class BBoxICME():
     def __init__(self, bounding_box):
@@ -19,6 +20,15 @@ class BBoxICME():
             self.heading = np.array([0, 0, bounding_box[6] + 1e-10])
             self.R = R.from_rotvec( self.heading )
             self.R_mtx = self.R.as_matrix()
+            self.R_mtx_homo = np.vstack(( np.hstack((self.R_mtx, np.array([[0], [0], [0]]) )), np.array([0, 0, 0, 1])))
+
+        elif isinstance(bounding_box, Cuboid):
+            self.center  = bounding_box.dst_SE3_object.translation.T
+            self.l = bounding_box.length_m
+            self.w = bounding_box.width_m
+            self.h = bounding_box.height_m
+    
+            self.R_mtx = bounding_box.dst_SE3_object.rotation
             self.R_mtx_homo = np.vstack(( np.hstack((self.R_mtx, np.array([[0], [0], [0]]) )), np.array([0, 0, 0, 1])))
 
     def get_points_in_bbox(self, pts_frame) -> np.array:

@@ -118,12 +118,12 @@ class OdometryPipeline:
     # Public interface  ------
     def run(self):
         self._run_pipeline()
-        self._run_evaluation()
-        self._create_output_dir()
-        self._write_result_poses()
-        self._write_gt_poses()
-        self._write_cfg()
-        self._write_log()
+        # self._run_evaluation()
+        # self._create_output_dir()
+        # self._write_result_poses()
+        # self._write_gt_poses()
+        # self._write_cfg()
+        # self._write_log()
         return self.results
 
     # Private interface  ------
@@ -168,8 +168,12 @@ class OdometryPipeline:
                 torch.set_grad_enabled(True)
                 car_points_in_DPS = bbox_ICME.get_points_in_DPS_coordinate(car_points)
                 obj = self.optimizer.reconstruct_object(np.identity(4), car_points_in_DPS)
-                mesh = self.mesh_extractor.extract_mesh_from_code(obj.code)
-                mesh.vertices = bbox_ICME.get_meshes(mesh.vertices)
+
+                if obj.code is not None:
+                    mesh = self.mesh_extractor.extract_mesh_from_code(obj.code)
+                    mesh.vertices = bbox_ICME.get_meshes(mesh.vertices)
+                else:
+                    mesh = None
 
                 opt_boxes_car = []
 
@@ -182,7 +186,10 @@ class OdometryPipeline:
                 ICME["nodes"] = nodes
                 ICME["edges"] = edges
                 ICME["opt_boxes_car"] = opt_boxes_car
-                ICME["gt_boxes_car"] = gt_boxes_car
+                if self.gt_poses is not None:
+                    ICME["gt_boxes_car"] = self.gt_poses[idx]
+                else:
+                    ICME["gt_boxes_car"] = None
                 ICME["car_points"] = car_points_in_DPS
                 ICME["mesh"] = mesh
 

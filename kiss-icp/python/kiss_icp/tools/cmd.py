@@ -158,6 +158,13 @@ def kiss_icp_pipeline(
         help="[Optional] For some dataloaders, you need to specify a given sequence",
         rich_help_panel="Additional Options",
     ),
+    log_id: Optional[str] = typer.Option(
+        None,
+        "--log_id",
+        show_default=False,
+        help="[Optional] Only valid when processing Argoverse2",
+        rich_help_panel="Additional Options",
+    ), #ICMEwithDSP
     topic: Optional[str] = typer.Option(
         None,
         "--topic",
@@ -221,6 +228,7 @@ def kiss_icp_pipeline(
             data_dir=data,
             # Additional options
             sequence=sequence,
+            log_id=log_id, #ICMEwithDSP
             topic=topic,
             meta=meta,
         ),

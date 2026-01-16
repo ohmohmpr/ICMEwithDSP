@@ -1,2 +1,4 @@
 check DeepSDF, loss should be low when init.
 check mesh heading
+ground truth of Av2 is a little wrong
+it prints something weird when has gt
