@@ -144,11 +144,9 @@ class BBoxICME():
         scale = np.identity(3) / 2.2
         rot_velo_obj = scale @ rot_x @ rot_z
 
-        t = np.array([[1, 0, 0, self.center[0]], 
-                  [0, 1, 0, self.center[1]], 
-                  [0, 0,1, self.center[2]]])
+        self.R_mtx_homo[0:3, 3] = self.center.T
         mesh = (np.linalg.inv(rot_velo_obj) @ mesh.T).T
-        mesh = (t @ np.hstack((mesh, np.ones((mesh.shape[0],1))  )).T).T[:, 0:3]
+        mesh = (self.R_mtx_homo @ np.hstack((mesh, np.ones((mesh.shape[0],1))  )).T).T[:, 0:3]
 
         meshes = mesh
 

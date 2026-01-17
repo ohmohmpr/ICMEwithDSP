@@ -198,7 +198,7 @@ class Optimizer(object):
             #       % (e, loss, sdf_loss, render_loss, rot_loss))
 
         end = get_time()
-        print("Reconstruction takes %f seconds" % (end - start))
+        # print("Reconstruction takes %f seconds" % (end - start))
         t_cam_obj = torch.inverse(t_obj_cam)
         return ForceKeyErrorDict(t_cam_obj=t_cam_obj.numpy(),
                                  code=latent_vector.cpu().numpy(),
@@ -221,5 +221,5 @@ class MeshExtractor(object):
         vertices = vertices.astype("float32")
         faces = faces.astype("int32")
         end = get_time()
-        print("Extract mesh takes %f seconds" % (end - start))
+        # print("Extract mesh takes %f seconds" % (end - start))
         return ForceKeyErrorDict(vertices=vertices, faces=faces)

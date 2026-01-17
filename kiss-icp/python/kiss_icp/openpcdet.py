@@ -22,7 +22,7 @@ from pcdet.utils import common_utils
 
 
 class DemoDataset(DatasetTemplate):
-    def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None, ext='.bin'):
+    def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None, ext='.bin', bypass=None):
         """
         Args:
             root_path:
@@ -40,6 +40,8 @@ class DemoDataset(DatasetTemplate):
 
         data_file_list.sort()
         self.sample_file_list = data_file_list
+        if bypass != None:
+            self.bypass = bypass
 
     def __len__(self):
         return len(self.sample_file_list)
@@ -49,6 +51,9 @@ class DemoDataset(DatasetTemplate):
             points = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 4)
         elif self.ext == '.npy':
             points = np.load(self.sample_file_list[index])
+        elif self.ext == '.feather':
+            points, _ = self.bypass[index]
+            points = np.hstack((  points, self.bypass.intensity[np.newaxis].T  ))
         else:
             raise NotImplementedError
 

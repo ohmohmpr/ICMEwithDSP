@@ -44,6 +44,7 @@ class Argoverse2Dataset:
         self.sequence_id = self.scans_dir.parts[-1]
         self.log_id = log_id
         self.split = "train"
+        self.file_extension = "feather"
 
         self._dataset = SensorDataloader(
             self.scans_dir,
@@ -52,12 +53,15 @@ class Argoverse2Dataset:
         )
 
         logs_id = list(self._dataset.sensor_cache.index.unique("log_id"))
-        if log_id == None or log_id not in logs_id :
+
+        if int(log_id) < len(logs_id) and int(log_id) >= 0:
+            print(f"\nFound {len(logs_id)} keys\n")
+            self.log_id = logs_id[int(log_id)]
+        elif log_id == None or log_id not in logs_id:
             print("\nPlease find log_ig from this list\n")
             print(logs_id)
             print("\nUse first Key\n")
             self.log_id = logs_id[0]
-            return
         
         self._load_gt_poses_and_annotations()
 
@@ -73,8 +77,9 @@ class Argoverse2Dataset:
         sensor_dir = log_dir / "sensors"
         lidar_feather_path = sensor_dir / "lidar" / f"{timestamp_ns}.feather"
         sweep = Sweep.from_feather(lidar_feather_path=lidar_feather_path)
-        timestamp_city_SE3_ego_dict = read_city_SE3_ego(log_dir=log_dir)
+        # timestamp_city_SE3_ego_dict = read_city_SE3_ego(log_dir=log_dir)
 
+        self.intensity = sweep.intensity/255
         return sweep.xyz, sweep.offset_ns
 
     def _load_annotations_with_spefic_category(self, split: str, log_id: str, sweep_timestamp_ns: int, category: str) -> CuboidList:

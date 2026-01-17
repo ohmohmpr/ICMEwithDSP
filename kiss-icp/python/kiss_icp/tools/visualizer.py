@@ -76,8 +76,8 @@ class Kissualizer(StubVisualizer):
         self._block_execution = True
         self._play_mode = False
         self._toggle_frame = True
-        self._toggle_keypoints = True
-        self._toggle_map = True
+        self._toggle_keypoints = False # ICMEwithDSP
+        self._toggle_map = False # ICMEwithDSP
         self._global_view = False
         self.i = 0
         self.gt = 0
@@ -157,6 +157,8 @@ class Kissualizer(StubVisualizer):
         if self._global_view:
             self._register_trajectory()
 
+        if len(ICME) == 0:
+            return
         # BOUNDING BOXES (ICMEwithDSP modified)
         # [x, y, z, dx, dy, dz, heading]
         # ref_boxes_car = ref_boxes_car[0]

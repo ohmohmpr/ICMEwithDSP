@@ -90,7 +90,7 @@ class OdometryPipeline:
         self.logger = common_utils.create_logger()
         self.demo_dataset = DemoDataset(
                 dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=False,
-                root_path=Path(self.config.openpcdet.data_path), ext=".bin", logger=self.logger
+                root_path=Path(self._dataset.scans_dir), ext=f".{self._dataset.file_extension}", logger=self.logger, bypass=self._dataset
                 # root_path=Path(config.openpcdet.data_path), ext=config.openpcdet.ext, logger=logger
         )
         self.model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=self.demo_dataset)
@@ -154,44 +154,45 @@ class OdometryPipeline:
 
 
                 ########## test on the first car ##########
-                first_car_bbox = copy.deepcopy(ref_boxes_car[0].cpu().detach().numpy())
-                # first_car_bbox = copy.deepcopy(ref_boxes_car.cpu().detach().numpy())
-                ########## test on the first car ##########
-
-
-                ## ICME
-                bbox_ICME = BBoxICME(first_car_bbox)
-                car_points = bbox_ICME.get_points_in_bbox_at_center(raw_frame)
-                nodes, edges = bbox_ICME.get_vertices_nodes()
-
-                ## DSP
-                torch.set_grad_enabled(True)
-                car_points_in_DPS = bbox_ICME.get_points_in_DPS_coordinate(car_points)
-                obj = self.optimizer.reconstruct_object(np.identity(4), car_points_in_DPS)
-
-                if obj.code is not None:
-                    mesh = self.mesh_extractor.extract_mesh_from_code(obj.code)
-                    mesh.vertices = bbox_ICME.get_meshes(mesh.vertices)
-                else:
-                    mesh = None
-
-                opt_boxes_car = []
-
-                ## Ground Truth
-                gt_boxes_car = []
-
-                ## ICME
                 ICME = {}
-                # ICME["ref_boxes_car"] = [first_car_bbox]
-                ICME["nodes"] = nodes
-                ICME["edges"] = edges
-                ICME["opt_boxes_car"] = opt_boxes_car
-                if self.gt_poses is not None:
-                    ICME["gt_boxes_car"] = self.gt_poses[idx]
-                else:
-                    ICME["gt_boxes_car"] = None
-                ICME["car_points"] = car_points_in_DPS
-                ICME["mesh"] = mesh
+                if len(ref_boxes_car) != 0:
+                    first_car_bbox = copy.deepcopy(ref_boxes_car[0].cpu().detach().numpy())
+                    # first_car_bbox = copy.deepcopy(ref_boxes_car.cpu().detach().numpy())
+                    ########## test on the first car ##########
+
+
+                    ## ICME
+                    bbox_ICME = BBoxICME(first_car_bbox)
+                    car_points = bbox_ICME.get_points_in_bbox_at_center(raw_frame)
+                    nodes, edges = bbox_ICME.get_vertices_nodes()
+
+                    ## DSP
+                    torch.set_grad_enabled(True)
+                    car_points_in_DPS = bbox_ICME.get_points_in_DPS_coordinate(car_points)
+                    obj = self.optimizer.reconstruct_object(np.identity(4), car_points_in_DPS)
+
+                    if obj.code is not None:
+                        mesh = self.mesh_extractor.extract_mesh_from_code(obj.code)
+                        mesh.vertices = bbox_ICME.get_meshes(mesh.vertices)
+                    else:
+                        mesh = None
+
+                    opt_boxes_car = []
+
+                    ## Ground Truth
+                    gt_boxes_car = []
+
+                    ## ICME
+                    # ICME["ref_boxes_car"] = [first_car_bbox]
+                    ICME["nodes"] = nodes
+                    ICME["edges"] = edges
+                    ICME["opt_boxes_car"] = opt_boxes_car
+                    if self.gt_poses is not None:
+                        ICME["gt_boxes_car"] = self.gt_poses[idx]
+                    else:
+                        ICME["gt_boxes_car"] = None
+                    ICME["car_points"] = car_points_in_DPS
+                    ICME["mesh"] = mesh
 
                 # Update visualizer
                 self._vis_infos["FPS"] = int(np.floor(self._get_fps()))
