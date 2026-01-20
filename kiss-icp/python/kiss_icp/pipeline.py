@@ -183,7 +183,7 @@ class OdometryPipeline:
                     gt_boxes_car = []
 
                     ## ICME
-                    # ICME["ref_boxes_car"] = [first_car_bbox]
+                    ICME["ref_boxes_car"] = [first_car_bbox]
                     ICME["nodes"] = nodes
                     ICME["edges"] = edges
                     ICME["opt_boxes_car"] = opt_boxes_car

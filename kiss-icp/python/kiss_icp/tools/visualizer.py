@@ -74,7 +74,7 @@ class Kissualizer(StubVisualizer):
         self._keypoints_size = KEYPOINTS_PTS_SIZE
         self._map_size = MAP_PTS_SIZE
         self._block_execution = True
-        self._play_mode = False
+        self._play_mode = True # ICMEwithDSP
         self._toggle_frame = True
         self._toggle_keypoints = False # ICMEwithDSP
         self._toggle_map = False # ICMEwithDSP

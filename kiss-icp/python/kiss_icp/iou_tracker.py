@@ -10,6 +10,7 @@ class Instance():
         self._id = id
         self._color = np.random.rand(1, 3)
         self.bbox = bbox
+        self.m = bbox.center()[1] / bbox.center()[0]
 
 class Tracker():
     def __init__(self):
@@ -38,6 +39,7 @@ class Tracker():
             for prev_car in self._instances:
                 i_curr = 0
                 current_iou_max = 0
+                # print("prev_car", prev_car.m)
                 is_found = False
                 for current_car in instances:
 

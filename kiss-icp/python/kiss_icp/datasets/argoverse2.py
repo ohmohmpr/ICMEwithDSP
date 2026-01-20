@@ -24,7 +24,8 @@ import importlib
 import os
 import sys
 
-from av2.datasets.sensor.sensor_dataloader import SensorDataloader, Sweep
+from av2.datasets.sensor.sensor_dataloader import Sweep
+from kiss_icp.datasets.util.sensor_dataloader import SensorDataloader
 from av2.structures.cuboid import CuboidList
 from av2.utils.io import TimestampedCitySE3EgoPoses, read_city_SE3_ego, read_feather
 
@@ -55,13 +56,13 @@ class Argoverse2Dataset:
         logs_id = list(self._dataset.sensor_cache.index.unique("log_id"))
 
         if int(log_id) < len(logs_id) and int(log_id) >= 0:
-            print(f"\nFound {len(logs_id)} keys\n")
+            print(f"Found {len(logs_id)} keys\n")
             self.log_id = logs_id[int(log_id)]
+            print(f"Use Key {int(log_id)}/{len(logs_id) - 1}\n")
         elif log_id == None or log_id not in logs_id:
             print("\nPlease find log_ig from this list\n")
             print(logs_id)
-            print("\nUse first Key\n")
-            self.log_id = logs_id[0]
+            return
         
         self._load_gt_poses_and_annotations()
 
@@ -105,7 +106,7 @@ class Argoverse2Dataset:
         return CuboidList(cuboids=cuboids)
     
     def _load_gt_poses_and_annotations(self):
-        print("Load Ground truth")
+        print("Load Ground truth\n")
         timestamp_ns_list = list(self._dataset.sensor_cache.xs((self.split, self.log_id, "lidar")).index)
         self.gt_poses = []
         for timestamp_ns in timestamp_ns_list:
